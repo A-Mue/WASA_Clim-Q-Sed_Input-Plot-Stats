@@ -1,8 +1,8 @@
 ##############
-## scraping ##
+## get-ncep ##
 ##############
 
-# Example template to download and process NCEP reanalysis data
+# Example template to download and process NCEP and GPCC reanalysis data
 
 # Install/load packages
 
@@ -14,6 +14,8 @@
   library(lubridate)
   #install.packages("ncdf4")
   library(ncdf4)
+  #install.packages("R.utils")
+  library(R.utils)
   #install.packages("sf")
   library(sf)
 
@@ -37,20 +39,36 @@
       
     
   # Select parameters and time
-  var <- c('temperature','relative humidity','net radiation','precipitation rate')  #c('temperature','relative humidity','u wind','v wind','soil heat flux','net radiation','precipitation rate')
+  # Data source: 
+  # NCEP data for T (var='temperature'), RH ('relative humidity'), and Rad ('net radiation')
+      # also available for P ('precipitation rate'), but coarser resolution than GPCC data
+  # GPCC data for P (var='gpcc precipitation') with number of gauging stations used for these data ('number of gauges')
+      
+  var <- c('temperature','relative humidity','net radiation','precipitation rate')  #all available NCEP variables: c('temperature','relative humidity','u wind','v wind','soil heat flux','net radiation','precipitation rate')
+  var <- c('gpcc precipitation')#,'number of gauges')       # GPCC 
+  
   years <- as.character(c(1980:2018))  # years <- c('2000','2001') #str(years)
-
+  #years <- as.character(c(1950:1979))
+  
   # Set working directory (location to store downloaded files)
   setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/scraping-download/")
-
+  #setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/scraping-download-1950-1979-allNCEP/")
+  
   # Define request
   request <- def_request(coor,var,years) # coor, var & years to be extracted from nf-files
-  knitr::kable(request)
+  knitr::kable(request)  # formatted table of request
   
   # Download and convert from ncdf to data frame and save
 
   get_nc(request) # download nc-files
   nc2rds(request) # create rds-files for defined request
+
+  
+#----------------------------------------------------------  
+
+# Print metadata
+
+  get_nc_meta(request,var[2])
 
   
 #----------------------------------------------------------
