@@ -18,7 +18,6 @@
   library(R.utils)
   #install.packages("sf")
   library(sf)
-
   install_github('jmigueldelgado/scraping',force=T)
   library(scraping)
 
@@ -47,13 +46,12 @@
   var <- c('temperature','relative humidity','net radiation','precipitation rate')  #all available NCEP variables: c('temperature','relative humidity','u wind','v wind','soil heat flux','net radiation','precipitation rate')
   var <- c('gpcc precipitation')#,'number of gauges')       # GPCC 
   
-  years <- as.character(c(1980:2018))  # years <- c('2000','2001') #str(years)
-  #years <- as.character(c(1950:1979))
+  years <- as.character(c(1950:2018))  # years <- c('1980','1981')
+ 
   
   # Set working directory (location to store downloaded files)
   setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/scraping-download/")
-  #setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/scraping-download-1950-1979-allNCEP/")
-  
+ 
   # Define request
   request <- def_request(coor,var,years) # coor, var & years to be extracted from nf-files
   knitr::kable(request)  # formatted table of request
@@ -61,6 +59,7 @@
   # Download and convert from ncdf to data frame and save
 
   get_nc(request) # download nc-files
+  
   nc2rds(request) # create rds-files for defined request
 
   
@@ -75,18 +74,18 @@
 
 # Load and view rds data examples
 
-## Install/load packages
+# Install/load packages
 
 library(scraping)
 library(dplyr)
 library(lubridate)
 
-## directory of downloaded NCEP-files
+# Directory of downloaded NCEP-files
 myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/scraping-download/" 
 
-# to load the examples, the rds-Files in the above directory are used
+# To load the examples, the rds-Files in the above directory are used
 
-### Load 'temperature'
+# Load 'temperature'
 
   var=lookup_var('temperature') %>% pull(varname)
   
@@ -101,7 +100,7 @@ myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_Anne
     knitr::kable()
 
 
-### Load 'relative humidity'
+# Load 'relative humidity'
 
   var=lookup_var('relative humidity') %>% pull(varname)
   df2=readRDS(paste0(myproj,var,'.rds'))
@@ -115,7 +114,7 @@ myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_Anne
     knitr::kable()
 
 
-### Load 'net radiation'
+# Load 'net radiation'
 
   var=lookup_var('net radiation') %>% pull(varname)
   df3=readRDS(paste0(myproj,var,'.rds'))
@@ -129,7 +128,7 @@ myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_Anne
     knitr::kable()
 
 
-### Load 'precipitation rate'
+# Load 'precipitation rate'
 
   var=lookup_var('precipitation rate') %>% pull(varname)
   df4=readRDS(paste0(myproj,var,'.rds'))

@@ -29,12 +29,11 @@ require(wasa.ops)
 #-------------------------------
 # Directory of rds-files (output of script ClimTS1; air.rds, dswrf.rds, prate.rds, rhum.rds)
 myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/scraping-download/" 
-myproj=getwd()
+#myproj=getwd()
 
-
-                                        # Directory & name of subbas-centroid file
+# Directory & name of subbas-centroid file
 subcent=read_tsv("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/centroids_subbas_LatLong.txt")
-subcent=read_tsv("./centroids_subbas_LatLong.txt")
+#subcent=read_tsv("./centroids_subbas_LatLong.txt")
 
 # Your target projection code (see GrassGIS project for lumpR)
 ## Example: the UTM code for Karun basin in Iran is N39. In epsg:
@@ -44,7 +43,7 @@ epsg=32639
 #-------------------------------
 # Directory & folder name to save WASA-SED input files of climate timeseries
 clim4wasa=("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/climTS4wasa")
-clim4wasa=getwd()
+#clim4wasa=getwd()
 
 #--------------------------------------------------------------------------------------
 # The following steps need to be conducted for 4 climate variables (P, T, Rad, RH); no further adjustments necessary
@@ -63,7 +62,7 @@ centroids <- subcent %>%
 # Precipitation
 #--------------------------------------------------------------------------------------
 
-# Read data and convert unit from kg/m2/s to mm/d
+# For NCEP data: Read data and convert unit from kg/m2/s to mm/d
 prate=readRDS(paste0(myproj,'prate.rds')) %>% mutate(value=value*3600*24) 
 head(prate)
 
@@ -100,6 +99,7 @@ for(dt in unique(obs_xy$time))
     # idwlist[[1]] >%> head()    # Select and show day 1
 
 # Reformat data to dataframe, rename columns, arrange data
+# (this might take a while for long time series, e.g. 1950-2018)
 long <- do.call(rbind,idwlist) %>%
         as_tibble() %>%
         select(cat,x,y,time,var1.pred) %>%
@@ -120,6 +120,7 @@ long2WASA_P(long,clim4wasa)
 air=readRDS(paste0(myproj,'air.rds')) %>% mutate(value=(value-273.15)) 
 head(air)
 
+# Convert hourly values to daily
 air <- air %>%
   group_by(lon,lat,day=floor_date(time,"day")) %>%
   summarise(value=mean(value),var=first(var))
@@ -132,8 +133,6 @@ obs_xy <- air %>%
   as(.,"Spatial") %>%       
   as_data_frame() %>%
   rename(x=coords.x1,y=coords.x2)
-
-
 
 # Define location for inverse distance weighting (idw)
 locations <- obs_xy %>%              # Centroids coordinates (x,y) of NCEP data grid  
@@ -215,7 +214,7 @@ long <- do.call(rbind,idwlist) %>%
   arrange(date,location)
 
 # Create WASA-SED input for R and save in directory "clim4wasa" as "radiation.dat"
-
+head(long)
 long2WASA_R(long,clim4wasa)
 
 
@@ -227,6 +226,11 @@ long2WASA_R(long,clim4wasa)
 # Read data and convert unit from K to Degrees Celsius
 rhum=readRDS(paste0(myproj,'rhum.rds')) # unit %, no conversion needed 
 head(rhum)
+
+# Convert hourly values to daily
+rhum <- rhum %>%
+  group_by(lon,lat,day=floor_date(time,"day")) %>%
+  summarise(value=mean(value),var=first(var))
 
 # Reproject rds-data and name grid centroids (by location)
 obs_xy <- rhum %>%
@@ -243,7 +247,7 @@ locations <- obs_xy %>%              # Centroids coordinates (x,y) of NCEP data 
   mutate(locations=seq(1,nrow(.)))   # Create location-ID number (1 to last entry of coordinates)
 
 # Combine tables "obs_xy" and "locations"; attach column with location-ID    
-obs_xy = obs_xy %>% left_join(.,locations,by=c('x','y'))
+obs_xy = obs_xy %>% left_join(.,locations,by=c('x','y')) %>% rename(time=day)
 
 # Interpolate NCEP data to subbas-centroids using inverse distance weighting (idw)
 # Note: idw based on x,y (not yet altitude)
