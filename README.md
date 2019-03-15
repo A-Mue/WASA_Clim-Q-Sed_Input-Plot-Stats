@@ -3,7 +3,7 @@
 For the WASA-SED model: A collection of R-scripts to:
 - Generate climate input data in the format needed by WASA-SED, 
 - Reformat observed river discharge Q (many txt-Files to 1 joint file; create continuous data, gaps are filled with NA), 
-- Statistical analyses: summary and NA statistics
+- Statistical analyses: summary and NA statistics,
 - Plot input and output Climate data, Qobs/mod, and Sediment. 
 
 Climate timerseries (ClimTS): download NCEP data, reformat, analyse statistics &amp; plot. 
