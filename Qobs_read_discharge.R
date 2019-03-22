@@ -275,9 +275,4 @@
     
     write.table(sumat,file=paste0("sumstat_Qobscont-dly_",min,"to",max,".txt"),sep=";",quote=F)
     
-    
-    #data 1980-2016
-    #write.csv(sumat,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/summary-Q_daily_all_01-01-1980--21-09-2016.txt")
-    
-    
 
