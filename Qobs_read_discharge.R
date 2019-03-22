@@ -15,25 +15,27 @@
   library(tidyr)
 
 
-## Select fluvio files ####
+## Select obs-discharge files ####
 
-  setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/all_daily_txt/")
+  setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Discharge/Qobs-processed/Qobs-daily-txt/")
   files <- list.files(pattern=".txt")
   files
-  write.csv(files,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/filenames.txt")
+  write.table(files,file="D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Discharge/Qobs-processed/Qobs-filenames.txt",quote=F,col.names=F,row.names=F)
   #files <-c("CheshmehNaz-VanakSemirom_21-770-Discharge.txt","BandGhadimi_21-765-Discharge.txt")
   #files="BandGhadimi_21-765-Discharge.txt"
   #Encoding(files) #"unknown" if type is UCS-2LE
   
 
 ## Read data using loop and convert ####
+  #Caution: Tab-separated data in txt-files assumed (works with sep="" = all blank space operators)
+  #Missing data are set to NA: blank space "", "0"-values or "NA"
 
   DF <- NULL
   for (f in files) {        #loop over all files
     
       dat=tryCatch(         # fix problem with data encoding using tryCatch
             {
-              dat<-read.table(f, header=TRUE,sep="",dec=".",na.strings=c("","0","NA"), fileEncoding="UTF-8",fill=T,skipNul=T,blank.lines.skip=TRUE)
+              dat<-read.table(f, header=TRUE,sep="",dec=".",na.strings=c("","0","NA","*","-9999.00","-9999","NaN"), fileEncoding="UTF-8",fill=T,skipNul=T,blank.lines.skip=TRUE)
             },
             
             error=function(err) {
@@ -53,7 +55,7 @@
               # message(war)
               # message("                    ")
               message("Repeated read.table with encoding UCS-2LE")  
-              dat<-read.table(f, header=TRUE,sep="",dec=".",na.strings=c("","0","NA"),fileEncoding="UCS-2LE",fill=T,skipNul=T,blank.lines.skip=TRUE)
+              dat<-read.table(f, header=TRUE,sep="",dec=".",na.strings=c("","0","NA","*","-9999.00","-9999","NaN"),fileEncoding="UCS-2LE",fill=T,skipNul=T,blank.lines.skip=TRUE)
               # return(head(dat,n=2L))  #show first 2 lines of data
               # return(dat)
             }
@@ -80,26 +82,92 @@
 
     # Warning can be ignored: "Warning messages: x: x failed to parse."
 
-## Save all obs data ####
+## Save all Qobs data in 1 file with station names####
     # Important: discharge=0 was set to NA!
     # Save with original station names
-    write.table(DF,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/Q_daily_all-stations.txt",row.names=F,sep=";",quote=F)
+    write.table(DF,file="D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Discharge/Qobs-processed/Qobs_daily_all_statnames.txt",row.names=F,sep=";",quote=F)
 
-    # Manually add 1st line with subbas-ID instead of station names! Needed for next step
     
-## Save data in format "discharge_obs_24.txt", as needed by WASA-SED ####
+## Rename column headers (station names) to subbas-ID####
+  # Create a rename-file with 1 column, containing the following entries:
+  # 1st entry "station name" (with quotation marks)
+  # 2nd = (no quotation marks) 
+  # 3rd subbas-ID (no quotation marks) 
+  # Example:
+  # "date"="date" 
+  # "ArabHasan_21443"=4
+  # Caution: "date"=date" is need to not rename the date column from DF
+  
+  # Read in the rename-file
+  renamefile="D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Rename-file-statname-subbasID.txt"
+  renamedf=read.table(renamefile, header = F,colClasses = "character", check.names=F,sep=c("=",",")) #data frame
+  renamedf      #str(renamedf)
+  # Create a rename vector
+  library(plyr)
+  as.matrix(renamedf)
+  DFren=DF
+  renamevect <- as.vector(renamedf$V2)
+  names(renamevect)<- as.vector(renamedf$V1)
+  renamevect
+  # Rename data frame with all obs data from station name to subbas ID
+  DFsub=rename(DFren, renamevect)
+  DFsub
+  str(DFsub)
+  
+## Check, if date of Qobs is continuous ####
+  
+  checkfile=DFsub
+  
+  # OR read in your data  
+  # checkfile=read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/Q_daily_all_subbas.csv",
+  #                      header = TRUE,  sep = ";", dec = ".",na.strings ="NA")
+  
+  head(checkfile)
+
+  # Get start and end date of Qobs
+  minQdate=min(checkfile$date)
+  maxQdate=max(checkfile$date)
+  minQdate
+  maxQdate
+  
+  # Create a continuous time series of minimum and maximum date of Qobs and test its length
+  #date = seq(from = as.Date(minQdate), to = as.Date(maxQdate), by = 'day')
+  # Or specify a certain length (e. g., like in climate data)
+  date = seq(from = as.Date("1950-01-01"), to = as.Date("2018-12-31"), by = 'day')
+  
+  #length(d)
+  d=NULL                    #create empty variable
+  d$date = data.frame(date) #attach date
+  d=data.frame(d)           #convert to datafram
+  
+## Create continous time with Skript Qobs-mod_summary-NAcheck-plots.R ! ####
+
+  #compare number of rows your data should have (d) with row numbers in your obs-data (obsraw)    
+  if(nrow(d)>nrow(checkfile)) message(paste("Obs-data is discontinous and has",nrow(d)-nrow(checkfile),"missing entries.")) else message("Your Obs-data is continous.")
+  
+  #If continuous, go to line 99
+  
+  #merge continuous date with obs-data and fill gaps with NA:
+  obscon <-  as_tibble(checkfile) %>%         #convert to dataframe
+    mutate(date=ymd(as.character(date)))      #convert "date" from character to date format
+  obscon=merge(d, obscon, by="date", all=T)   #merge continous date with obs-data and fill gaps with NA
+  obscon= data.frame(obscon)
+  
+  #compare number of rows your data should have (d) with row numbers in your obs-data (obscon)    
+  if(nrow(d)>nrow(obscon)) message(paste("Obs-data is discontinous and has",nrow(d)-nrow(obscon),"missing entries.")) else message("Your Obs-data is continous.")
+ 
+
+  ## Save data in format "discharge_obs_24.txt" for WASA-SED validation####
     # Important: dataobs-file 1st line has to contain subbas-ID
     # Format of header/column names: "date sub1 sub2 ..."
     
-    #place to save file
-    setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/")
-    #read data
+    # Read Qobs
+    # Data needs to be continuous! See above.
+    dataobs=obscon
+    # OR read file to reformat
+    # dataobs=read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/Q_daily_all_subID.csv",
+    #               header = TRUE,  sep = ";", dec = ".",na.strings ="NA")
 
-    # read file to reformat
-    # Data needs to be continuous! Check script Qobs-mod-summary... to create cont. time series 
-    dataobs=read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/Q_daily_all_subID.csv",
-                  header = TRUE,  sep = ";", dec = ".",na.strings ="NA")
-    #dataobs=obscon
     str(dataobs)  # check structure
     head(dataobs) # check header
    
@@ -121,8 +189,8 @@
     newobs=subset(dataobs, select=c("YYYY","MM","DD","HH")) #seperate date columns
     subx <- dataobs[, -c(1:4)] #extract subbas data
     ##rename subbasins to numbers only
-    names(subx) = sub(pattern="sub", replacement="", x=names(subx))
-    #names(subx) = sub(pattern="X", replacement="", x=names(subx)) #in case subbas-name starts with X
+    names(subx) = sub(pattern="X", replacement="", x=names(subx)) #in case subbas-name starts with X
+    #names(subx) = sub(pattern="sub", replacement="", x=names(subx))
     
     ##reformat names from "character" to "integer" and sort subbas columns by header name
     colorder=sort.int(as.integer(names(subx)), index.return = T)$ix
@@ -135,7 +203,11 @@
     
     #Save as "discharge_obs_24.txt"
     #Afterwards manually attach the header!
-    write.table(newobs,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/discharge_obs_24.txt", sep="\t",row.names=F,quote=F) 
+    
+    #place to save file
+    setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Discharge/")
+    
+    write.table(newobs,file="discharge_obs_24.txt", sep="\t",row.names=F,quote=F) 
 
     ##Data to insert as header in "discharge_obs_24.txt"
     mat=matrix(c("YYYY","YYYY","YYYY", #first column
@@ -147,67 +219,30 @@
     df=rename(df, c("X1"="discharge [m3/s]", "X2"=".","X3"="..","X4"="..."))
     df 
     #Export df as "header" file
-    write.table(df,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/header.txt", sep="\t",row.names=F,quote=F) 
+    #Saved under directroy "setwd()", to check apply "getwd()"
+    write.table(df,file="header.txt", sep="\t",row.names=F,quote=F) 
     
     #Copy and paste manually to first lines of "discharge_obs_24.txt"
     #Note: header has 4 lines, then obs-data starts
     
     
-    # write.table_with_header <- function(x, file, header){
-    #   cat(header, '\n',  file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/header.txt")
-    #   write.table(x, file, append = T, sep="\t",row.names=F,quote=F)
-    # }
-    # 
-    # write.table_with_header(x=,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/discharge_obs_24.txt", header) 
-    # 
-    
-    # my.write <- function(x, file, header, f = write.csv, ...){
-    #   # create and open the file connection
-    #   datafile <- file(file, open = 'wt')
-    #   # close on exit
-    #   on.exit(close(datafile))
-    #   # if a header is defined, write it to the file (@CarlWitthoft's suggestion)
-    #   if(!missing(header)) writeLines(header,con=datafile)
-    #   # write the file using the defined function and required addition arguments  
-    #   f(x, datafile,...)
-    # }
-    
-              
-## Check, if date is continuous ####
-    
-# read in your data  
-checkfile=read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/Q_daily_all_subbas.csv",
-           header = TRUE,  sep = ";", dec = ".",na.strings ="NA")
-head(checkfile)
-length(checkfile$date)
-   # Example: 
-      #length(checkfile$date)
-      #[1] 23376
-# create an artificial time series of dates you wish and test its length
-testdate = seq(from = as.Date("1950-09-23"), to = as.Date("2016-09-21"), by = 'day')
-length(testdate)
-
-difference=length(testdate)-length(checkfile$date)
-difference
-
-#1951-09-23 until 1953-09-23 
-test= seq(from = as.Date("1951-09-24"), to = as.Date("1953-09-22"), by = 'day')
-length(test)
-
-## Create continous time with Skript Qobs-mod_summary-NAcheck-plots.R ! ####
 
 ## Create nice summary table ####
     # Important: discharge=0 was set to NA!
+    
     # DF = read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/Q_daily_all-stations.txt",
     #   header = TRUE,  sep = ",", dec = ".",na.strings ="NA")
-    
     #Data 01/01/1980-21/09/2016
-    DF = read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/Q_daily_1980-2016_subbas.csv",
-    header = TRUE,  sep = ";", dec = ".",na.strings ="NA")
- 
-    summary(DF)
+    # DF = read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/Q_daily_1980-2016_subbas.csv",
+    # header = TRUE,  sep = ";", dec = ".",na.strings ="NA")
     
-    obs <- DF[, -(1)]  
+    DF2=newobs
+    str(DF2)
+    summary(DF2)
+    
+    obs <- DF2[, -(1:4)]  #remove first 4 columns YYYY, MM, DD, HH
+    str(obs)
+
     sumstat = do.call(cbind, lapply(obs, summary))
     sumstat = round(sumstat, digits=2)
     
@@ -222,8 +257,25 @@ length(test)
     sumat=t(sumat)
     sumat            
 
-    #save
-    write.table(sumat,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/summary-Q_daily_all-stations.txt",sep=";",quote=F)
+    #Save file with dynamic file name
+    setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Discharge/")
+    getwd()
+        #start date of Qobs cont data
+          hDF2=head(DF2[,1:3],n=1) 
+          # hDF2=as.matrix(hDF2)
+          # hDF2=as.character(as.vector(hDF2[,1:3]))
+          hDF2$min <- as.character(interaction(hDF2,sep="-"))
+          min=hDF2$min
+        #end date
+          tDF2=tail(DF2[,1:3],n=1) 
+          tDF2$max <- as.character(interaction(tDF2,sep="-"))
+          max=tDF2$max
+          #tDF2=as.matrix(tDF2)
+          #tDF2=as.character(as.vector(tDF2[,1:3]))
+    
+    write.table(sumat,file=paste0("sumstat_Qobscont-dly_",min,"to",max,".txt"),sep=";",quote=F)
+    
+    
     #data 1980-2016
     #write.csv(sumat,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge/summary-Q_daily_all_01-01-1980--21-09-2016.txt")
     
