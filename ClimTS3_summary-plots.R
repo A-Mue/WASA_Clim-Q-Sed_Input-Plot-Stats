@@ -17,9 +17,9 @@ P_file="rain_daily.dat"
 Rad_file="radiation.dat"
 Hum_file="humidity.dat"
 
-#--------------------------------------------------------------------------------
-# Temperature - Daily average temperature [degrees Celsius]
-#--------------------------------------------------------------------------------
+#-----------------------------------------------------------------#
+#### Temperature - Daily average temperature [degrees Celsius] ####
+#-----------------------------------------------------------------#
 
 T_rawdat = read.table(paste(wasa_input_dir, T_file, sep=""), header = TRUE,  sep = "\t", dec = ".", na.strings = c("-9999.00","-9999","NA","NaN"), skip=2)
 T_rawdat = data.frame(T_rawdat)  # "raw data"
@@ -39,9 +39,9 @@ T_sumstat     # T in degrees Celsius, daily
 # write.csv(T_sumstat,file="D:/Anne/_SaWaM_Data_/1_SaoFrancisco/1-1_UpperSFRB/Climate_Time_series/SummaryStats_T.txt")
 
 
-#--------------------------------------------------------------------------------
-# Precipitation - Daily total precipitation [mm]
-#--------------------------------------------------------------------------------
+#------------------------------------------------------#
+#### Precipitation - Daily total precipitation [mm] ####
+#------------------------------------------------------#
 
 P_rawdat = read.table(paste(wasa_input_dir, P_file, sep=""), header = TRUE,  sep = "\t", dec = ".", na.strings = c("-9999.00","-9999","NA","NaN"), skip=2)
 P_rawdat = data.frame(P_rawdat)  # "raw data"
@@ -57,9 +57,9 @@ P_sumstat     # P in mm, daily
 # write.csv(P_sumstat,file="D:/Anne/_SaWaM_Data_/1_SaoFrancisco/1-1_UpperSFRB/Climate_Time_series/SummaryStats_P.txt")
 
 
-#--------------------------------------------------------------------------------
-# Radiation - Daily average radiation [W/m2]
-#--------------------------------------------------------------------------------
+#--------------------------------------------------#
+#### Radiation - Daily average radiation [W/m2] ####
+#--------------------------------------------------#
 
 Rad_rawdat = read.table(paste(wasa_input_dir, Rad_file, sep=""), header = TRUE,  sep = "\t", dec = ".", na.strings = c("-9999.00","-9999","NA","NaN"), skip=2)
 Rad_rawdat = data.frame(Rad_rawdat)  # "raw data"
@@ -79,9 +79,9 @@ write.csv(Rad_sumstat,file="D:/Anne/_SaWaM_Data_/1_SaoFrancisco/1-1_UpperSFRB/Cl
 Rad_selstat= Rad_sumstat[, c("X30","X31","X33","X35","X36","X37","X38","X49","X51","X57","X61","X63","X64","X65","X71","X75","X76","X78","X80","X81")] 
 write.csv(Rad_selstat,file="D:/Anne/_SaWaM_Data_/1_SaoFrancisco/1-1_UpperSFRB/Climate&Fluvio_Time_series/SummaryStatistics_Time_series/SummaryStats_Rad_new_selsubbas.txt")
 
-#--------------------------------------------------------------------------------
-# Humidity - Daily average humidity [%]
-#--------------------------------------------------------------------------------
+#---------------------------------------------#
+#### Humidity - Daily average humidity [%] ####
+#---------------------------------------------#
 
 Hum_rawdat = read.table(paste(wasa_input_dir, Hum_file, sep=""), header = TRUE,  sep = "\t", dec = ".", na.strings = c("-9999.00","-9999","NA","NaN"), skip=2)
 Hum_rawdat = data.frame(Hum_rawdat)  # "raw data"
@@ -97,9 +97,9 @@ Hum_sumstat
 # write.csv(Hum_sumstat,file="D:/Anne/_SaWaM_Data_/1_SaoFrancisco/1-1_UpperSFRB/Climate_Time_series/SummaryStats_Hum.txt")
 
 
-#--------------------------------------------------------------------------------
-# Summary statistics of all climate time series data
-#--------------------------------------------------------------------------------
+#----------------------------------------------------------#
+#### Summary statistics of all climate time series data ####
+#----------------------------------------------------------#
 
 # For all subbasins (Note: rbind = bind by rows; cbin = bind by columns)
 Clim_sumstat=rbind(T_sumstat,P_sumstat,Rad_sumstat,Hum_sumstat) 
@@ -113,12 +113,12 @@ Clim_selstat
 write.csv(Clim_selstat,file="D:/Anne/_SaWaM_Data_/1_SaoFrancisco/1-1_UpperSFRB/Climate_Time_series/SummaryStats_ClimateSelectedSubbas.txt")
 
 
-#--------------------------------------------------------------------------------
-# Visualisation
-#--------------------------------------------------------------------------------
+#---------------------#
+#### Visualisation ####
+#---------------------#
 
-# Boxplots
-#---------------
+# Boxplots ####
+#-------------#
 # all data
 T_box=boxplot(T_dat, notch = T, ylab="Daily average T [Â°C]", par(cex.lab=1), par(cex.axis=1), las=2)
 P_box=boxplot(P_dat, notch = T, ylab="Daily total P [mm]", las=2)   # funktioniert nicht gut, da viele 0-Werte
@@ -139,8 +139,8 @@ Hum_sel=Hum_dat[, c("X30","X31","X33","X35","X36","X37","X38","X49","X51","X57",
 Hum_selbox=boxplot(Hum_sel,notch = T, ylab="Daily average humidity [%]", las=2)
 
 
-# Time series curves
-#----------------------
+# Time series curves ####
+#-----------------------#
 # Precipitation
 
 # idea: for 1 subbas, curves of monthly sums of precipitation, Jan-Dec for all years of climate data
@@ -173,7 +173,7 @@ rain = P_datain$rain_11
 plot(P_datain$datenum, rain, type = "l", main = paste0(thread_dir,"; rain subbas_", subbas ))
   
 
-# Monthly / yearly sums
+# Monthly / yearly sums ####
 
 # create variables of month, year (and week) of each observation:
 P_datain$day <- as.Date(cut(P_datain$datenum, breaks = "day"))
@@ -225,8 +225,8 @@ ggplot(data =  yearsum_P_11,
 # "2010","2011","2012","2013")
 
 
-# Stacked time series curves
-#----------------------
+#### Stacked time series curves ####
+#----------------------------------#
 
 library(ggplot2)
 
@@ -252,7 +252,6 @@ ggplot(data=msum_P_11)+geom_line(aes(x=Month, y=rain_11,  colour=Year))+
       scale_x_discrete(limits=c(1:12))
       #scale_fill_gradientn(colours=rainbow(4))  #scale_fill ... für kontinuierl. Daten
   
-
 
 # POINT plot (legend=different years) for each month (=x) -> Spannweite NS/Monat über ges. Zeitraum
 newmsum_P_11=msum_P_11 %>% mutate(Year=as.integer(Year))

@@ -34,9 +34,9 @@
   library(ggplot2)
   
   working_dir="D:/Anne/_SaWaM_Data_/2_KarunDez/WASA-SED/"
-  thread_dir="2-0/"
+  thread_dir="2-2/"
   wasa_input_dir=paste(working_dir, thread_dir, "Input/Time_series/",sep="")
-  wasa_output_dir=paste(working_dir, thread_dir, "Output/",sep="")
+  wasa_output_dir=paste(working_dir, thread_dir, "Output-a/",sep="")
 
 # Read precipitation data used for modelling (same length as mod-data)
   P_file="rain_daily.dat"
@@ -71,19 +71,32 @@
   nrow(P_dat)
   
 # Fix discontinous observation data: create continous date, merge with obs-data & fill missing values with NA:
-  #create artificial time series - adjust date to your obs- and mod-data!
-  head(P_rawdat[,1],n=1) #look at start date
-  tail(P_rawdat[,1],n=1) #look at end date
   
-  #Adjust date manually like in P-data
-  date = seq(from = as.Date("1950-01-01"), to = as.Date("2018-11-30"), by = 'day')
+  #create artificial time series with length of mod discharge data 
+  #find start & end of mod data
+    hmod=head(modraw[,1:2],n=1) #look at start date
+    tmod=tail(modraw[,1:2],n=1) #look at end date
+    hmod
+    tmod
+    #convert day of year to date
+    modstart=as.Date(hmod$day-1, origin = paste(hmod$year,"-01-01",sep="")) # -1, because the function starts counting with 0
+    modend=as.Date(tmod$day-1, origin = paste(tmod$year,"-01-01",sep="")) 
+    modstart
+    modend
+  
+    # With length of P data: (not that useful, since WASA climate input can be longer than simulation period in do.dat)
+    # head(P_rawdat[,1],n=1) #look at start date
+    # tail(P_rawdat[,1],n=1) #look at end date
+  
+  #Date sequence from mod-start date to mod-end date
+  date = seq(from = as.Date(modstart), to = as.Date(modend), by = 'day') #str(date)
   d=NULL                    #create empty variable
   d$date = data.frame(date) #attach date
   d=data.frame(d)           #convert to datafram
   
   #compare number of rows your data should have (d) with row numbers in your obs-data (obsraw)    
   if(nrow(d)>nrow(obsraw)) message(paste("Obs-data is discontinous and has",nrow(d)-nrow(obsraw),"missing entries.")) else message("Your Obs-data is continous.")
-  #If continuous, go to line 99
+  #If continuous, you can still do this, because date-column is created:
   
       #merge continuous date with obs-data and fill gaps with NA:
       obscon <-  as_tibble(obsraw) %>%            #convert to dataframe
@@ -95,15 +108,15 @@
       
       #compare number of rows your data should have (d) with row numbers in your obs-data (obscon)    
       if(nrow(d)>nrow(obscon)) message(paste("Obs-data is discontinous and has",nrow(d)-nrow(obscon),"missing entries.")) else message("Your Obs-data is continous.")
-      
+  
   #compare number of rows of mod and obs-data   
   if(nrow(mod)!=nrow(obscon)) message(paste("Caution: No modelling data for whole obs-period, with",nrow(obscon)-nrow(mod),"missing mod-values.")) else message("Your Obs-data is continous.")
   
   # Save continous obs-file ####
-  write.table(obscon,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge_cont_1950-01-01-2018-11-30.txt",sep=";",row.names=F,quote=F)
+  #write.table(obscon,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge_cont_1950-01-01-2018-11-30.txt",sep=";",row.names=F,quote=F)
   
   # Read continous obs-data from file ####
-  obscon = read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge_cont_1950-01-01-2018-11-30.txt", header = TRUE,  sep = ";", dec = ".", na.strings = c("-9999.00","-9999","NA","NaN"))
+  #obscon = read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge_cont_1950-01-01-2018-11-30.txt", header = TRUE,  sep = ";", dec = ".", na.strings = c("-9999.00","-9999","NA","NaN"))
   
 
 #### I) NA and summary statistics ####
@@ -116,7 +129,7 @@
 #### Summary statistics #### 
 
 # Read cont. obs-data from file (must be continous!)
-  obscon = read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge_cont_1950-01-01-2018-11-30.txt", header = TRUE,  sep = ";", dec = ".", na.strings = c("-9999.00","-9999","NA","NaN"))
+  #obscon = read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge_cont_1950-01-01-2018-11-30.txt", header = TRUE,  sep = ";", dec = ".", na.strings = c("-9999.00","-9999","NA","NaN"))
   
   
   obs=obscon[,-1] #take continous obs-data from step 0)
@@ -135,7 +148,7 @@
   sumat   
   
 # Adjust file name, time period & save  
-  write.table(sumat,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/SummaryStats_obs-discharge_cont_1950-01-01-2018-11-30.txt",quote=F,sep=";")
+  #write.table(sumat,file="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/SummaryStats_obs-discharge_cont_1950-01-01-2018-11-30.txt",quote=F,sep=";")
   #write.table(sumstat,file="D:/Anne/_SaWaM_Data_/1_SaoFrancisco/1-2_ExtendedSFRB/AbflussSediment_ANA/alle/SummaryStats_Fluvio.txt",quote=F,sep=";")
 
 
@@ -157,8 +170,6 @@
     percNA_23=length_23/nrow
 # Fraction of NAs for all Subbas
     round(colMeans(is.na(obs)), digits=3) # Multiply by 100 for %
-
-
 
 
 #__________________________________________________________________________________________________
@@ -197,11 +208,18 @@
     modend
     
     # P data subset
-    head(P_rawdat[,1],n=1) #look at start date
-    tail(P_rawdat[,1],n=1) #look at end date
-    
+    hP=head(P_rawdat[,1],n=1) #look at start date
+    tP=tail(P_rawdat[,1],n=1) #look at end date
+    hP
+    tP
+
+    #convert day of year to date - doesn't work so far
+    # Pstart=as.Date(hmod$day-1, origin = paste(hmod$year,"-01-01",sep="")) # -1, because the function starts counting with 0
+    # Pend=as.Date(tmod$day-1, origin = paste(tmod$year,"-01-01",sep="")) 
+
     #!! Manually change according to head & tail
-    P_rawdat$date=seq(from = as.Date("1950-01-01"), to = as.Date("2018-11-30"), by = 'day')
+    P_rawdat$date=seq(from = as.Date("1950-01-01"), to = as.Date("2018-12-31"), by = 'day')
+    #P_rawdat$date=seq(from = as.Date(Pstart), to = as.Date(Pend), by = 'day')
 
     #subset P with modstart/end
     Psubset <- P_rawdat[P_rawdat$date >= modstart & P_rawdat$date <= modend,] 
@@ -228,16 +246,6 @@
     # IDs keine Kopf-EZG (Obs Data am Outlet) 
     #30,31,33,35,36,61,63,64,71,78
     
-    
-    # # To dynamically sample column by subbas-number
-    # i=12       # adjust subbas-number
-    # 
-    # subbas=i
-    # var=paste0("obs_",i,sep="")
-    # discharge_obs=datain[var]     #head(datain[var]) #str(discharge_obs)
-    # df=datain[var]
-    # discharge_obs=as.numeric(df[,1]) #extract only values without column name
-    
     #KarunDez
     #KopfEZG
     #Karun 31 #Dez 35,36,59
@@ -246,20 +254,42 @@
     #NichtKopfEZG MIT upstream Damm
     #Dez 40,41,55,58,61
      
-    subbas=61#58#55#41#40#60#102#95#81#20#18#59#31#35#36
+# To dynamically sample column by subbas-number
     
-# select modelled River flow
-    discharge_mod=mod$mod_61#58#55#41#40#60#102#95#81#20#18#59#31#35#36#
-# select obs discharge
-    #discharge_obs = obscon$obs_23
-    #OR subset for certain period
-    discharge_obs = obsubset$obs_61#58#55#41#40#60#102#95#81#20#18#59#31#35#36
-    #length(which(is.na(discharge_obs))) # Number of NAs of single subbasin
-# select precipitation
-    #P_obs=P_dat$rain_23
-    #OR subset for certain period
-    P_obs=Psubset$rain_61#58#55#41#40#60#102#95#81#20#18#59#31#35#36
     Pdatasource="NCEP"  #for title in figure; precipitation data source
+    
+    # adjust subbas-number i
+    i=2   
+    #subbas=95#61#58#55#41#40#60#102#95#81#20#18#59#36#35#31
+    
+    #KopfEZG & nichtStrat
+    # 3 19 24 27 30 39 46 50 52 54 57 67 69
+    #70 71 72 73 74 77 79 83 86 87 89 92 93 94 97
+    #100 106 108 109 113 115 116
+    
+    #NichtKopf & nichtStrat
+    #2 17 21 23 25 28
+    #47 51 53 65 66 68 76 78 80 82 84
+    #98 104 105 107 110 111 112 114
+  
+  # Create plot
+      if=T{     
+    subbas=i
+    # select obs discharge
+    var1=paste0("obs_",i,sep="") #head(datain[var]) #str(discharge_obs)
+    df1=obsubset[var1] #or df1=obscon[var1] for whole timespan of P data
+    discharge_obs=as.numeric(df1[,1]) #extract only values without column name
+    #length(which(is.na(discharge_obs))) # Number of NAs of single subbasin
+    
+    # select modelled River flow
+    var2=paste0("mod_",i,sep="")
+    df2=mod[var2]
+    discharge_mod=as.numeric(df2[,1])   
+  
+    # select precipitation
+    var3=paste0("rain_",i,sep="")
+    df3=Psubset[var3] #or df3=P_dat[var2] for whole timespan of P data
+    P_obs=as.numeric(df3[,1])  
     
     date=seq(from = as.Date(modstart), to = as.Date(modend), by = 'day')
     datain=NULL
@@ -302,41 +332,66 @@
     dend=modend   #end date of mod-data
     dstart
     dend
+    xaxisend=as.Date("2019-12-31") #manually change the end of x-axis
     
     p1=ggplot()+
-      ggtitle(paste0("Subbas ",subbas, ", Modelled (green) and observed (blue) river discharge Q [m³/s],",dstart," to ",dend," (red: NA in obs. discharge)")) + 
+      #ggtitle(paste0("Subbas ",subbas, ", ",dstart," to ",dend)) + 
+      #ggtitle(paste0("Subbas ",subbas, ", Modelled (green) and observed (blue) river discharge Q [m³/s],",dstart," to ",dend," (red: NA in obs. discharge)")) + 
       theme(plot.title = element_text(hjust=0, size=10)) +
       labs(x = "Year", y = "Q [m³/s]") +
     # Skalierung x-Achse & Beschriftung
       #scale_x_date(breaks = seq(as.Date("1980-01-01"), as.Date("2018-11-30"), by="1 year"), date_labels="%Y") +
-      scale_x_date(breaks = seq(dstart, dend, by="1 year"), date_labels="%Y") +
+      scale_x_date(breaks = seq(dstart, xaxisend, by="1 year",limits = c(min, xaxisend)), date_labels="%Y",expand = c(0, 1)) +
+      #scale_x_date(breaks = seq(dstart, dend, by="1 year"), date_labels="%Y",expand = c(0, 0)) +
+      
       #scale_x_date(breaks = seq(dstart, dend, by="1 day"), date_labels="%d") +
       theme(axis.text.x = element_text(angle = 90,  hjust=0.5, vjust = 0.5)) +
     # NA kennzeichnen
-      geom_vline(xintercept = l, colour="#FC9999")+
-        #geom_vline(xintercept = l$date, colour="#FC9999")+  #l$date, um Datumsvektor zu isolieren  
-      geom_line(data = datain,aes(x=date, y=discharge_obs, colour="discharge_obs")) +
-      geom_line(data = datain,aes(x=date, y=discharge_mod, colour="discharge_mod")) +
-      scale_colour_manual("", breaks = c("discharge_mod","discharge_obs"),values = c("green","blue")) +
-      theme(legend.position = c(0.9,0.9))#c(0.85,0.9))
+      geom_vline(aes(xintercept = l, colour="NA in Q_obs"),show.legend=F)+#colour="#FC9999")+
+      geom_line(data = datain,aes(x=date, y=discharge_obs, colour="Q_obs")) +
+      geom_line(data = datain,aes(x=date, y=discharge_mod, colour="Q_mod")) +
+      scale_colour_manual("", 
+                values = c("Q_mod"="green","Q_obs"="blue","NA in Q_obs"="#FC9999"),#)+#,
+                guide = guide_legend(override.aes = list(
+                size=c(5,1,1)))) #+ theme(legend.position = c(0.9,0.9))#c(0.85,0.9))
     #print(p1)
   
-    p2=ggplot()+geom_line(data = datain,
-                       aes(x=date, y=P_obs), colour="lightblue") +
-      ggtitle(paste0("Subbas ",subbas, ", Observed precipitation P [mm], ",dstart," to ",dend,", data source: ", Pdatasource)) + theme(plot.title = element_text(hjust=0, size=10)) +
-      labs(x = "Year", y = "P [mm]") +
+     p2=ggplot()+geom_line(data = datain,
+                       aes(x=date, y=P_obs,colour="P_NCEP"),size=1) +
+      ggtitle(paste0("Subbas ",subbas, ", ",dstart," to ",dend)) + theme(plot.title = element_text(hjust=0, size=10)) +
+      labs(x = "", y = "P [mm]") +
+      #ggtitle(paste0("Subbas ",subbas, ", Observed precipitation P [mm],",dstart," to ",dend,", data source: ", Pdatasource)) + theme(plot.title = element_text(hjust=0, size=10)) +
+      #labs(x = "Year", y = "P [mm]") +
       # Skalierung x-Achse & Beschriftung
       # scale_x_date(breaks = seq(as.Date("1980-01-01"), as.Date("2013-12-31"), by="1 year"), 
       #              date_labels="%Y", position = "top") + 
-      scale_x_date(breaks = seq(dstart, dend, by="1 year"), date_labels="%Y") +
+      scale_x_date(breaks = seq(dstart, xaxisend, by="1 year",limits = c(min, xaxisend)), date_labels="%Y",expand = c(0, 1)) +
       theme(axis.text.x = element_text(angle = 90,  hjust=0.5, vjust = 0.5)) +
+      scale_colour_manual("", breaks = "P_NCEP",values = "lightblue") +
+      #theme(legend.position = c(0.9,0.9)) + #c(0.85,0.9)) 
       scale_y_reverse()
     #print(p2)
     
-     multiplot(p2, p1, cols=1)    # zum Initialisieren siehe unten
-     m=multiplot(p2, p1, cols=1)
-     
-     #save image
+     #multiplot(p2, p1, cols=1)    # zum Initialisieren siehe unten
+     #m=multiplot(p2, p1, cols=1)
+  
+     g=NULL
+     ## convert plots to gtable objects
+     library(gtable)
+     library(grid) # low-level grid functions are required
+     g1 <- ggplotGrob(p1)
+     #g1 <- gtable_add_cols(g1, unit(0,"mm")) # add a column for missing legend
+     g2 <- ggplotGrob(p2)
+     g <- rbind(g2, g1, size="first") # stack the two plots
+     g$widths <- unit.pmax(g2$widths, g1$widths) # use the largest widths
+     # center the legend vertically
+     #g$layout[grepl("guide", g$layout$name),c("t","b")] <- c(1,nrow(g))
+     grid.newpage()
+     grid.draw(g)    
+      }
+   
+         
+  # Save image
  
      ggsave("D:/Anne/_SaWaM_Data_/2_KarunDez/WASA-SED_Results/multiplot-obs-mod-Pm.pdf", width = 20, height = 20, units = "cm")
      
@@ -611,7 +666,6 @@
     
     subbas=i
     var=paste0("obs_",i,sep="")
-    discharge_obs=datain[var]     #head(datain[var]) #str(discharge_obs)
     df=datain[var]
     discharge_obs=as.numeric(df[,1]) #extract only values without column name
  

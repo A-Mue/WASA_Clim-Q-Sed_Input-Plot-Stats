@@ -28,11 +28,13 @@ require(wasa.ops)
 # Input (please adjust)
 #-------------------------------
 # Directory of rds-files (output of script ClimTS1; air.rds, dswrf.rds, prate.rds, rhum.rds)
-myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/scraping-download/" 
+myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/ClimateData_AnneJose/climTS1-download/ncep-2018/"
+
 #myproj=getwd()
 
 # Directory & name of subbas-centroid file
-subcent=read_tsv("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/centroids_subbas_LatLong.txt")
+subcent=read_tsv("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/ClimateData_AnneJose/centroids_subbas_LatLong.txt")
+
 #subcent=read_tsv("./centroids_subbas_LatLong.txt")
 
 # Your target projection code (see GrassGIS project for lumpR)
@@ -42,7 +44,8 @@ epsg=32639
 # Output (please adjust)
 #-------------------------------
 # Directory & folder name to save WASA-SED input files of climate timeseries
-clim4wasa=("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/climTS4wasa")
+clim4wasa=("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/ClimateData_AnneJose/climTS4wasa/2018update/")
+
 #clim4wasa=getwd()
 
 #--------------------------------------------------------------------------------------
