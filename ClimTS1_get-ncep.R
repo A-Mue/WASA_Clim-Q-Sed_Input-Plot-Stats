@@ -1,10 +1,10 @@
-##############
-## get-ncep ##
-##############
+#-----------------#
+#### get-ncep ####
+#-----------------#
 
 # Example template to download and process NCEP and GPCC reanalysis data
 
-# Install/load packages
+# Install/load packages ####
 
   library(devtools)
   library(dplyr)
@@ -22,7 +22,7 @@
   library(scraping)
 
 
-# Define request, download and convert from ncdf to data frame and save
+# Define request, download and convert from ncdf to data frame and save ####
 
   # Select (multiple) coordinates OR region extent
     # coordinates as points 
@@ -37,7 +37,7 @@
       coor <- data.frame(l=47.41,r=52.44,b=29.69,t=34.33)
       
     
-  # Select parameters and time
+# Select parameters and time ####
   # Data source: 
   # NCEP data for T (var='temperature'), RH ('relative humidity'), and Rad ('net radiation')
       # also available for P ('precipitation rate'), but coarser resolution than GPCC data
@@ -49,30 +49,31 @@
   years <- as.character(c(1950:2018))  # years <- c('1980','1981')
  
   
-  # Set working directory (location to store downloaded files)
+# Set working directory ####
+  # (location to store downloaded files)
   setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/scraping-download/")
  
-  # Define request
+# Define request ####
   request <- def_request(coor,var,years) # coor, var & years to be extracted from nf-files
   knitr::kable(request)  # formatted table of request
   
-  # Download and convert from ncdf to data frame and save
+# Download and convert from ncdf to data frame and save ####
 
   get_nc(request) # download nc-files
   
   nc2rds(request) # create rds-files for defined request
 
   
-#----------------------------------------------------------  
+#----------------------------------------------------------#  
 
-# Print metadata
+# Print metadata ####
 
   get_nc_meta(request,var[2])
 
   
-#----------------------------------------------------------
+#----------------------------------------------------------#
 
-# Load and view rds data examples
+# Load and view rds data examples ####
 
 # Install/load packages
 
@@ -85,7 +86,7 @@ myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_Anne
 
 # To load the examples, the rds-Files in the above directory are used
 
-# Load 'temperature'
+# Load 'temperature' ####
 
   var=lookup_var('temperature') %>% pull(varname)
   
@@ -100,7 +101,7 @@ myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_Anne
     knitr::kable()
 
 
-# Load 'relative humidity'
+# Load 'relative humidity' ####
 
   var=lookup_var('relative humidity') %>% pull(varname)
   df2=readRDS(paste0(myproj,var,'.rds'))
@@ -114,7 +115,7 @@ myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_Anne
     knitr::kable()
 
 
-# Load 'net radiation'
+# Load 'net radiation' ####
 
   var=lookup_var('net radiation') %>% pull(varname)
   df3=readRDS(paste0(myproj,var,'.rds'))
@@ -128,7 +129,7 @@ myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_Anne
     knitr::kable()
 
 
-# Load 'precipitation rate'
+# Load 'precipitation rate' ####
 
   var=lookup_var('precipitation rate') %>% pull(varname)
   df4=readRDS(paste0(myproj,var,'.rds'))
