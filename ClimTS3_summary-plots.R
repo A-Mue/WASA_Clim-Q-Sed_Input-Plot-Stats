@@ -211,7 +211,7 @@ ggplot(data =  yearsum_P_11,
   theme(axis.text.x = element_text(angle = 90,  hjust=0.5, vjust = 0.5)) +
   # Balken & Beschriftung
   geom_bar(stat="identity", fill="steelblue")+  
-  geom_text(aes(label=yearsum_P_11$rain_11), angle = 90, vjust=0.3, hjust=1.5, size=4, colour="white") #vjust=horizontale Ausrichtung (re-li), hjust=vertikale Ausrichtung (höher-tiefer)
+  geom_text(aes(label=yearsum_P_11$rain_11), angle = 90, vjust=0.3, hjust=1.5, size=4, colour="white") #vjust=horizontale Ausrichtung (re-li), hjust=vertikale Ausrichtung (h?her-tiefer)
 
 
 
@@ -238,36 +238,36 @@ df$Year <- format(as.Date(P_datain$day), "%Y")    # add column of year
 df
 
 #head(df)     #zeigt erste Zeilen eines Dataframes
-#remove(df)   #löscht die Variable aus "Data" in R
+#remove(df)   #l?scht die Variable aus "Data" in R
 
 # Aggregate monthly/yearly sums, msum/ysum (for "monthsum"/"yearsum" are already specified above)
 msum_P_11=aggregate(data=df,rain_11 ~ Month + Year,sum) %>% mutate(Month=as.integer(Month)) # aggregate "rain" by "month", apply function "sum" 
 msum_P_11
 
 
-# LINES plot, stacked, coloured (legend=different years) for each month (=x) -> Besser für Ganglinie im Jahresverlauf
+# LINES plot, stacked, coloured (legend=different years) for each month (=x) -> Besser f?r Ganglinie im Jahresverlauf
 ggplot(data=msum_P_11)+geom_line(aes(x=Month, y=rain_11,  colour=Year))+
       ggtitle("WASA-SED Input, Subbas 11, Precipitation P, Monthly sums of daily values, 01-01-1980 to 31-21-2013") + theme(plot.title = element_text(hjust=0, size=10)) +
       labs(x = "Month", y = "P, monthly sums of daily values [mm]") +
       scale_x_discrete(limits=c(1:12))
-      #scale_fill_gradientn(colours=rainbow(4))  #scale_fill ... für kontinuierl. Daten
+      #scale_fill_gradientn(colours=rainbow(4))  #scale_fill ... f?r kontinuierl. Daten
   
 
-# POINT plot (legend=different years) for each month (=x) -> Spannweite NS/Monat über ges. Zeitraum
+# POINT plot (legend=different years) for each month (=x) -> Spannweite NS/Monat ?ber ges. Zeitraum
 newmsum_P_11=msum_P_11 %>% mutate(Year=as.integer(Year))
 
-#Blauschattierung für Jahre
+#Blauschattierung f?r Jahre
 ggplot(data=newmsum_P_11)+geom_point(aes(x=Month, y=rain_11,  colour=Year))+
   ggtitle("WASA-SED Input, Subbas 11, Precipitation P, Monthly sums of daily values, 01-01-1980 to 31-21-2013") + theme(plot.title = element_text(hjust=0, size=10)) +
   labs(x = "Month", y = "P, monthly sums of daily values [mm]") +
   scale_x_discrete(limits=c(1:12))
 
-#Regenbogen für Jahre
+#Regenbogen f?r Jahre
 ggplot(data=newmsum_P_11)+geom_point(aes(x=Month, y=rain_11,  colour=Year))+
   ggtitle("WASA-SED Input, Subbas 11, Precipitation P, Monthly sums of daily values, 01-01-1980 to 31-21-2013") + theme(plot.title = element_text(hjust=0, size=10)) +
   labs(x = "Month", y = "P, monthly sums of daily values [mm]") +
   scale_x_discrete(limits=c(1:12)) +
-  scale_colour_gradientn(colours=rainbow(4))  #scale_colour/scale_fill ... für diskrete/kontinuierl. Daten
+  scale_colour_gradientn(colours=rainbow(4))  #scale_colour/scale_fill ... f?r diskrete/kontinuierl. Daten
 
 
   

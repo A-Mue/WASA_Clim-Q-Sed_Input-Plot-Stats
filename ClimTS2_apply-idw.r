@@ -2,7 +2,7 @@
 # Script to interpolate NCEP climate data to subbasin centroids
 # and generate model input of climate timeseries for WASA-SED
 #
-# Authors: J. M. Delgado, A. Müller
+# Authors: J. M. Delgado, A. M?ller
 #
 # Required:
 #     - subbasin centroids in Latitude Longitude projection (LatLon)
@@ -12,7 +12,7 @@
 # Note: Climate model input rounded to 0 digits.
 #__________________________________________________________________
 
-# Load packages (or first install, if needed)
+# Install/load packages ####
 require(devtools)
 require(dplyr)
 require(gstat)
@@ -25,8 +25,8 @@ install_github('jmigueldelgado/wasa.ops')
 require(wasa.ops)
 
 
-# Input (please adjust)
-#-------------------------------
+# Input (please adjust) ####
+#-------------------------------#
 # Directory of rds-files (output of script ClimTS1; air.rds, dswrf.rds, prate.rds, rhum.rds)
 myproj="D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/ClimateData_AnneJose/climTS1-download/ncep-2018/"
 
@@ -41,14 +41,14 @@ subcent=read_tsv("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/ClimateDat
 ## Example: the UTM code for Karun basin in Iran is N39. In epsg:
 epsg=32639
 
-# Output (please adjust)
-#-------------------------------
+# Output (please adjust) ####
+#-------------------------------#
 # Directory & folder name to save WASA-SED input files of climate timeseries
 clim4wasa=("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/ClimateData_AnneJose/climTS4wasa/2018update/")
 
 #clim4wasa=getwd()
 
-#--------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------#
 # The following steps need to be conducted for 4 climate variables (P, T, Rad, RH); no further adjustments necessary
 
 # Read subbas-centroids, reproject to "epsg" (defined above) & add location-ID
@@ -61,9 +61,9 @@ centroids <- subcent %>%
   rename(x=coords.x1,y=coords.x2)
 
 
-#--------------------------------------------------------------------------------------
-# Precipitation
-#--------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------#
+#### Precipitation ####
+#--------------------------------------------------------------------------------------#
 
 # For NCEP data: Read data and convert unit from kg/m2/s to mm/d
 prate=readRDS(paste0(myproj,'prate.rds')) %>% mutate(value=value*3600*24) 
@@ -115,9 +115,9 @@ long2WASA_P(long,clim4wasa)
 
 
 
-#--------------------------------------------------------------------------------------
-# Temperature
-#--------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------#
+#### Temperature ####
+#--------------------------------------------------------------------------------------#
 
 # Read data and convert unit from K to Degrees Celsius
 air=readRDS(paste0(myproj,'air.rds')) %>% mutate(value=(value-273.15)) 
@@ -171,9 +171,9 @@ long2WASA_T(long,clim4wasa)
 
 
 
-#--------------------------------------------------------------------------------------
-# Radiation
-#--------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------#
+#### Radiation ####
+#--------------------------------------------------------------------------------------#
 
 # Read data
 dswrf=readRDS(paste0(myproj,'dswrf.rds')) # unit W/m2, no conversion needed
@@ -222,9 +222,9 @@ long2WASA_R(long,clim4wasa)
 
 
 
-#--------------------------------------------------------------------------------------
-# Humidity
-#--------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------#
+#### Humidity ####
+#--------------------------------------------------------------------------------------#
 
 # Read data and convert unit from K to Degrees Celsius
 rhum=readRDS(paste0(myproj,'rhum.rds')) # unit %, no conversion needed 

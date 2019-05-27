@@ -1,6 +1,6 @@
-#-----------------#
+#----------------#
 #### get-ncep ####
-#-----------------#
+#----------------#
 
 # Example template to download and process NCEP and GPCC reanalysis data
 
