@@ -5,9 +5,12 @@
 # Example template to download and process NCEP and GPCC reanalysis data
 
 # Install/load packages ####
-
+  #install.packages("curl")
+  library(curl)
   library(devtools)
   library(dplyr)
+  #install.packages("geosphere")
+  library(geosphere)
   #install.packages("lwgeom")
   library(lwgeom)
   #install.packages("lubridate")
@@ -51,8 +54,9 @@
   
 # Set working directory ####
   # (location to store downloaded files)
-  setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/ClimateData_AnneJose/scraping-download/")
- 
+  #setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/ClimateData_AnneJose/climTS1-download/ncep-2018")
+  setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/ClimateData_AnneJose/climTS1-download/gpcc-P")
+  
 # Define request ####
   request <- def_request(coor,var,years) # coor, var & years to be extracted from nf-files
   knitr::kable(request)  # formatted table of request
@@ -63,7 +67,20 @@
   
   nc2rds(request) # create rds-files for defined request
 
+#----------------------------------------------------------#  
+# Check spatial resolution of data ####
   
+  # adjust year
+  nc_T="air.2m.gauss.2018.nc"        # air temperature
+  nc_P="prate.sfc.gauss.2018.nc"     # precipitation
+  nc_Rad="dswrf.sfc.gauss.2018.nc"   # radiation
+  nc_RH="rhum.sig995.2018.nc"        # relative humidity
+  
+  # get spatial resolution  
+  get_nc_spatial_res(nc_T) 
+  get_nc_spatial_res(nc_T)
+  
+    
 #----------------------------------------------------------#  
 
 # Print metadata ####
