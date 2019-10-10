@@ -14,6 +14,6 @@ Qobs_read_discharge.R can "collect" single discharge text files for each subbasi
 
 Stats&Plot-Qobs-mod-P-NA.R is a collection of scripts for statistical analysis (summary/NA statistics), plotting of observed discharge (Q obs), as well as joint plots with precipitation, Q obs and Q modelled; you can also create continuous time series of observation data or only plot for certain time intervals.
 
-Authors: A. Müller, J. M. Delgado, T. Francke 
-
 For more information please see the Wiki: https://github.com/A-Mue/WASA_Clim-Qobs/wiki
+
+Copyright: 2019 Anne Müller, José Miguel Delgado, Till Francke 
