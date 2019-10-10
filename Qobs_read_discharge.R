@@ -1,11 +1,16 @@
 # Script for reading in discharge data (fluvio data)
 # and collect multiple txt-files into one, aggregated by date
 
+# Copyright (C) 2019 Anne Müller, José Miguel Delgado 
+
+# Requirements:
 # Data structure: Folder with different txt-files of discharge for each station, Date of different time lengths
 # Header: Date (YYYY/MM/DD) Q_mean_m3s (mean discharge in m3/s)
 # Data encoding: best in UTF-8, but this script can also handle UCS-2LE
 
 ## Load packages ####
+list=c("dplyr","lubridate","readr","Rtools","sf","stringr","tidyr")
+install.packages(list)
 
   library(dplyr)
   library(lubridate)
@@ -17,10 +22,10 @@
 
 ## Select obs-discharge files ####
 
-  setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Discharge/Qobs-processed/Qobs-daily-txt/")
+  setwd("E:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Discharge/Qobs-processed/Qobs-daily-txt/")
   files <- list.files(pattern=".txt")
   files
-  write.table(files,file="D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Discharge/Qobs-processed/Qobs-filenames.txt",quote=F,col.names=F,row.names=F)
+  write.table(files,file="_Qobs-filenames.dat",quote=F,col.names=F,row.names=F)
   #files <-c("CheshmehNaz-VanakSemirom_21-770-Discharge.txt","BandGhadimi_21-765-Discharge.txt")
   #files="BandGhadimi_21-765-Discharge.txt"
   #Encoding(files) #"unknown" if type is UCS-2LE

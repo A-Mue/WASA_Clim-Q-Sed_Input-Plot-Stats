@@ -1,4 +1,6 @@
-#Fluvio Observation Data
+# Copyright (C) 2019 José Miguel Delgado, Anne Müller 
+
+# Fluvio Observation Data from Rio Sao Francisco, Brazil, as provided by ANA
 # rename to subbasins (subbas_cleanAnne@LUMP)
 
 library(sf)

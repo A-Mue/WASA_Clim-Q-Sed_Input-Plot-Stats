@@ -3,6 +3,8 @@
 #                                              II) non headwater subbas (Nicht-KopfEZG)
 # ------------------------------------------------------------------------------------------
 
+# Copyright (C) 2019 Anne Müller
+
 # Content
 # 0) Initialisation                                      (Lines)
 # I) Calculate rc for certain time span                    (54)
@@ -16,7 +18,6 @@
 # - Time period
 # - Subbas IDs (subbas delivering water to non-headwater subbas -> from routing.dat)
 #
-# Anne Mueller
 #________________________________________________________________________________
 
 # 0) Initialisation

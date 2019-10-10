@@ -1,6 +1,9 @@
 # Script for reading in precipitation observation data (Pobs)
 # and collect multiple txt-files into one, aggregated by date
 
+# Copyright (C) 2019 Anne Müller, José Miguel Delgado 
+
+# Requirements:
 # Data structure: Folder with different txt-files of P for each station, Date of different time lengths
 # Data file:  Header: Date (YYYY/MM/DD) P_mm (daily rainfall)
 #             Empty line at end of file!

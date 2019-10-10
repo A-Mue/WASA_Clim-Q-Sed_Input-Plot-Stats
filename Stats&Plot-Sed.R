@@ -2,7 +2,7 @@
 # Plot observed and modelled sediment 
 #
 #
-# Anne Mueller
+# Copyright (C) 2019 Anne Müller
 #________________________________________________________________________________
 
 #### 0) Initialisation ####

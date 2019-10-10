@@ -4,7 +4,7 @@
 # 
 # Source code: Package "sirad"
 # 
-# Anne Müller
+# Copyright (C) 2019 Anne Müller
 #________________________________________________________________________________
 
 

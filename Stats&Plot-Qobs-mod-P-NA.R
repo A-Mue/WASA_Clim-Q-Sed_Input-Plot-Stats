@@ -1,6 +1,9 @@
 #
 # Analysis of observed river discharge data 
 #
+
+# Copyright (C) 2019 Anne Müller
+
 #### Content ####
 
 # 0) Initialisation                      (Lines)
@@ -19,7 +22,6 @@
     # - Time period
     # - Subbas IDs
 #
-# Anne Mueller
 #________________________________________________________________________________
 
 #### 0) Initialisation ####
@@ -33,7 +35,7 @@
   library(tidyr)
   library(ggplot2)
   
-  working_dir="D:/Anne/_SaWaM_Data_/2_KarunDez/WASA-SED/"
+  working_dir="E:/Anne/_SaWaM_Data_/2_KarunDez/WASA-SED/"
   thread_dir="2-2/"
   wasa_input_dir=paste(working_dir, thread_dir, "Input/Time_series/",sep="")
   wasa_output_dir=paste(working_dir, thread_dir, "Output-a/",sep="")
@@ -259,7 +261,7 @@
     Pdatasource="NCEP"  #for title in figure; precipitation data source
     
     # adjust subbas-number i
-    i=2   
+    i=59   
     #subbas=95#61#58#55#41#40#60#102#95#81#20#18#59#36#35#31
     
     #KopfEZG & nichtStrat

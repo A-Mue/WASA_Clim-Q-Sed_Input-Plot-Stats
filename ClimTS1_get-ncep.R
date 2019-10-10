@@ -1,3 +1,5 @@
+# Copyright (C) 2019 José Miguel Delgado, Anne Müller 
+
 #----------------#
 #### get-ncep ####
 #----------------#
@@ -46,10 +48,11 @@
       # also available for P ('precipitation rate'), but coarser resolution than GPCC data
   # GPCC data for P (var='gpcc precipitation') with number of gauging stations used for these data ('number of gauges')
       
-  var <- c('temperature','relative humidity','net radiation','precipitation rate')  #all available NCEP variables: c('temperature','relative humidity','u wind','v wind','soil heat flux','net radiation','precipitation rate')
-  var <- c('gpcc precipitation')#,'number of gauges')       # GPCC 
+  #var <- c('temperature','relative humidity','net radiation','precipitation rate')  #all available NCEP variables: c('temperature','relative humidity','u wind','v wind','soil heat flux','net radiation','precipitation rate')
+  var <- c('gpcc precipitation','number of gauges')       # GPCC 
   
-  years <- as.character(c(1950:2018))  # years <- c('1980','1981')
+  years<-"2018"
+  #years <- as.character(c(1950:2018))  # years <- c('1980','1981')
  
   
 # Set working directory ####

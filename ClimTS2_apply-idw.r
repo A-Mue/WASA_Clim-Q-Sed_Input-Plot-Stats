@@ -2,7 +2,7 @@
 # Script to interpolate NCEP climate data to subbasin centroids
 # and generate model input of climate timeseries for WASA-SED
 #
-# Authors: J. M. Delgado, A. M?ller
+# Copyright (C) 2019 José Miguel Delgado, Anne Müller 
 #
 # Required:
 #     - subbasin centroids in Latitude Longitude projection (LatLon)

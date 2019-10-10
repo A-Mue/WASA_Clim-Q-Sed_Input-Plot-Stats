@@ -1,3 +1,6 @@
+# Copyright (C) 2019 Anne Müller 
+
+
 #Show snow routine output ####
 
 #Plot Snow water equivalent ####

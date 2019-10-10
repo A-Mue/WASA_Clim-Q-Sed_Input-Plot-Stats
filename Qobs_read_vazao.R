@@ -1,6 +1,8 @@
 # Script for reading in discharge data (fluvio data) and sediment from ANA Hidroweb
 # and collect multiple txt-files into one, aggregated by date
 
+# Copyright (C) 2019 José Miguel Delgado, Anne Müller 
+
 # Data structure: Folder with different files of VAZAO for each station
 
 library(sf)

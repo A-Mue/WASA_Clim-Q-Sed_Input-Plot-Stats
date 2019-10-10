@@ -3,7 +3,7 @@
 #
 # (WASA-SED Input, Time_series)
 # 
-# Anne Mueller
+# Copyright (C) 2019 Anne Müller 
 #________________________________________________________________________________
 
 library(readr)
