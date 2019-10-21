@@ -27,6 +27,11 @@
 #### 0) Initialisation ####
 #___________________________________________
 
+# Install packages
+    #list=c("lubridate","readr","sf","stringer","tidyr","ggplot2")
+    #install.packages(list)
+
+# Load packages
   library(dplyr)
   library(lubridate)
   library(readr)
@@ -128,7 +133,7 @@
 # summary(obs)      # Summary for all observation data
 # summary(obs$X30)  # Summary for single subbasin
 
-#### Summary statistics #### 
+## Summary statistics ##
 
 # Read cont. obs-data from file (must be continous!)
   #obscon = read.table("D:/Anne/_SaWaM_Data_/2_KarunDez/MeteoHydro-Station-data/HydrometricStations_Anne/obs-discharge_cont_1950-01-01-2018-11-30.txt", header = TRUE,  sep = ";", dec = ".", na.strings = c("-9999.00","-9999","NA","NaN"))
@@ -162,7 +167,7 @@
   # tail(obs1)
   
 
-#### (Number of NAs) ####
+## (Number of NAs) ##
 
 #length(which(is.na(obsdata)))              # Number of all NAs - not very helpful
     length_23=length(which(is.na(obs$obs_23))) # Number of NAs of single subbasin
@@ -209,22 +214,20 @@
     modstart
     modend
     
-    # P data subset
+# P data subset
     hP=head(P_rawdat[,1],n=1) #look at start date
     tP=tail(P_rawdat[,1],n=1) #look at end date
     hP
     tP
 
-    #convert day of year to date - doesn't work so far
-    # Pstart=as.Date(hmod$day-1, origin = paste(hmod$year,"-01-01",sep="")) # -1, because the function starts counting with 0
-    # Pend=as.Date(tmod$day-1, origin = paste(tmod$year,"-01-01",sep="")) 
+  # convert P date character string to date & subset data
+    
+    Psubset <- as_tibble(P_rawdat) %>%           # create P subset
+      mutate(date = dmy(X0))   %>%               # change date character string to date
+      filter(date>= modstart & date<= modend)    # subset data for time period of modelling data
+    
+    Psubset=data.frame(Psubset)  # convert to data frame       
 
-    #!! Manually change according to head & tail
-    P_rawdat$date=seq(from = as.Date("1950-01-01"), to = as.Date("2018-12-31"), by = 'day')
-    #P_rawdat$date=seq(from = as.Date(Pstart), to = as.Date(Pend), by = 'day')
-
-    #subset P with modstart/end
-    Psubset <- P_rawdat[P_rawdat$date >= modstart & P_rawdat$date <= modend,] 
     #drop date columns for plotting
     Psubset=subset(Psubset, select = -date)
     Psubset=Psubset[,-(1:2)]

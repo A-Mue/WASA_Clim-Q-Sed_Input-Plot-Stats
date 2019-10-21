@@ -11,7 +11,7 @@
 
 ## 0.1) Load packages ####
 
-#list = c("dplyr", "lubridate","readr","sf","stringr", "tidyr")
+#list = c("dplyr", "lubridate","readr","sf","stringr", "tidyr","tidyverse")
 #install.packages(list)
 
   library(dplyr)
@@ -36,10 +36,46 @@ files
 #files= ("AbBarik-21-065.txt")
 #f="AbBarik-21-065.txt"
 
-#write.table(files,file="_filenames.dat",quote=F,col.names=F,row.names=F)
+# Optional: try to guess file encoding
+    #guess_encoding(files, n_max = 1000)
+    #Encoding(files) #"unknown" if type is UCS-2LE
 
-#Encoding(files) #"unknown" if type is UCS-2LE
-#guess_encoding(files, n_max = 1000)
+
+## 0.3) Export file names & create rename file for interpol-Script (rainfall interpolation to subbas centroids) ####
+fnames=files
+fnames= sub(pattern=".txt", replacement="", x=fnames) #save list without ".txt" in filenames
+#write.table(fnames,file="_filenames.dat",quote=T,col.names=F,row.names=F)
+
+# Create empty data frame
+DFnames = NULL 
+DFnames$fnames=fnames # add column with original file names
+DFnames
+
+library(stringr)
+sn=fnames # create short form of file names
+sn1=str_sub(sn, 1, 1) # get first character of file name
+sn3=str_sub(sn, -3, -1) # get last 3 characters
+snames=paste0(sn1,sn3, collapse = NULL) # combine short name string
+
+DFnames$snames=snames # add column with short file names
+DFnames
+
+# Create "Y", "M", "D" for rename file (shall not be renamed)
+mat=matrix(c("Y","M","D", #first column
+             "Y","M","D")
+           , nrow = 3, ncol = 2)
+mat=data.frame(mat)
+names(mat)=c("fnames","snames")
+#str(mat) #data type has to be equal for rbind
+#str(DFnames)
+mat$fnames=as.character(mat$fnames) #reformat to character
+mat$snames=as.character(mat$fnames)
+
+DFrename=rbind(mat, DFnames) #data frame for renaming
+DFrename
+
+#Save as rename file
+write.table(DFrename,file="_rename4interpol.dat",quote=T,col.names=F,row.names=F,sep="=")
 
 
 ## 1) Read data using loop and convert ####
@@ -209,9 +245,9 @@ DF #show grouped Pobs data
   
 
   
-## 4) Save data in format for "interpol" script (P station interpolation to subbas cetroids) ####
+## 4) Save data in format for "interpol" script "rainfall24_data.out" (P station interpolation to subbas cetroids) ####
 
-  # Format of header/column names: "date sub1 sub2 ..."
+  # Format of header/column names: "Y	M	D	A051	A137 ..."
     
   # Read Qobs
     # Data needs to be continuous! See above.
@@ -229,79 +265,149 @@ DF #show grouped Pobs data
     # separate() creates different columns for year,month and day
     # in case of daily data
     dataobs=separate(data=dataobs,col = "date",into = c("year","month","day")) # for hourly data: c("year","month","day","hour")
-    dataobs=as.data.frame(append(dataobs, 0, after = 3)) #append 0-column for hours
     
-    # rename date columns
+# rename date columns
     library(plyr)
     dataobs=data.frame(dataobs)
-    dataobs=rename(dataobs, c("year"="YYYY", "month"="MM","day"="DD","X0"="HH")) # "Error: All arguments must be named" -> Solution: library(plyr) after library(dplyr)
+    dataobs=rename(dataobs, c("year"="Y", "month"="M","day"="D")) # "Error: All arguments must be named" -> Solution: library(plyr) after library(dplyr)
   
-    # sort subbasin columns, ascending order: sub 1 ... sub n
-    ## first we need to exclude the date columns
-    newobs=subset(dataobs, select=c("YYYY","MM","DD","HH")) #seperate date columns
-    subx <- dataobs[, -c(1:4)] #extract subbas data
-    ##rename subbasins to numbers only
-    names(subx) = sub(pattern="X", replacement="", x=names(subx)) #in case subbas-name starts with X
-    #names(subx) = sub(pattern="sub", replacement="", x=names(subx))
-    
-    ##reformat names from "character" to "integer" and sort subbas columns by header name
-    colorder=sort.int(as.integer(names(subx)), index.return = T)$ix
-    subx=subx[,colorder]
-    ## combine date columns and sorted subbas columns
-    newobs=cbind(newobs,subx)
-    ## check data head & structure
-    head(newobs)
-    str(newobs)
-    
-    #Save as "discharge_obs_24.txt"
-    #Afterwards manually attach the header!
-    
-    #place to save file
-    setwd("D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Discharge/")
-    
-    write.table(newobs,file="discharge_obs_24.txt", sep="\t",row.names=F,quote=F) 
-
-    ##Data to insert as header in "discharge_obs_24.txt"
-    mat=matrix(c("YYYY","YYYY","YYYY", #first column
-                 "MM","MM","MM",  
-                 "DD","DD","DD",
-                 "HH","HH","HH")
-               , nrow = 3, ncol = 4)
-    df=data.frame(mat)
-    df=rename(df, c("X1"="discharge [m3/s]", "X2"=".","X3"="..","X4"="..."))
-    df 
-    #Export df as "header" file
-    #Saved under directroy "setwd()", to check apply "getwd()"
-    write.table(df,file="header.txt", sep="\t",row.names=F,quote=F) 
-    
-    #Copy and paste manually to first lines of "discharge_obs_24.txt"
-    #Note: header has 4 lines, then obs-data starts
-    
-    
-
-## Rename column headers (station names) to subbas-ID####
-    # Create a rename-file with 1 column, containing the following entries:
+# Rename column headers (station names) to short form 
+    # Create a rename-file with 1 column - see step 0.3) - containing the following entries:
     # 1st entry "station name" (with quotation marks)
     # 2nd = (no quotation marks) 
-    # 3rd subbas-ID (no quotation marks) 
+    # 3rd short ID (with quotation marks, e.g. KarunDez: first letter & last 3 digits of station code) 
     # Example:
-    # "date"="date" 
-    # "ArabHasan_21443"=4
-    # Caution: "date"=date" is need to not rename the date column from DF
+      # "Y"="Y"  # Caution: "Y"=Y" is needed to not rename the date columns
+      # "M"="M"
+      # "D"="D"
+      # "AbasAbad_21928"="A928"
+    
     
     # Read in the rename-file
-    renamefile="D:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/MeteoHydroObs/Rename-file-statname-subbasID.txt"
+    getwd()
+    renamefile="_rename4interpol.dat"
     renamedf=read.table(renamefile, header = F,colClasses = "character", check.names=F,sep=c("=",",")) #data frame
     renamedf      #str(renamedf)
     # Create a rename vector
     library(plyr)
     as.matrix(renamedf)
-    DFren=DF
+    DFren=dataobs
     renamevect <- as.vector(renamedf$V2)
     names(renamevect)<- as.vector(renamedf$V1)
     renamevect
     # Rename data frame with all obs data from station name to subbas ID
-    DFsub=rename(DFren, renamevect)
-    DFsub
-    str(DFsub)
+    DFinterpol=rename(DFren, renamevect)
+    DFinterpol
+    #str(DFinterpol)
 
+    # Replace "NA" by "-999"
+    DFinterpol[is.na(DFinterpol)] <- -999
+    DFinterpol
+    
+#Save as "rainfall24_data.out"
+    #place to save file
+    getwd()
+    #setwd("...") #adjust path if needed
+    
+    write.table(DFinterpol,file="rainfall24_data.out", sep="\t",row.names=F,quote=F) 
+
+    
+    
+## 5) Save Output of "interpol" script as WASA-SED Time_series Input "rain_daily.dat" ####
+    
+# 5.0) Reformat & select time period ####
+    
+        # Data need to be continous! (See step 2) 
+    
+    # Read in result "rainfall24.out"
+    resint="e:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/Interpolation_P-stationdata/interpol_Till/_result4wasa/raw_rainfall24.out"
+    res=read.table(resint, header=TRUE,sep="",dec=".",na.strings=c("","NA","*","-999.00","-9999.00","-9999","NaN"), fileEncoding="UTF-8",fill=T,skipNul=T,blank.lines.skip=TRUE)
+    str(res)
+    #rename columns
+    names(res)= sub(pattern="_var01", replacement="", x=names(res))
+    
+    library(dplyr)
+    
+    # Create 1 date column
+    res$date <- as.Date(paste(res$day,res$month,res$year, sep=".")  , format = "%d.%m.%Y" ) 
+    
+  # A) All data: reformat data - use res2 for whole time period in step 5.1)
+    res2 <- as_tibble(res) %>%
+      mutate(Date=strftime(date,"%d%m%Y"),index=row_number(date)) %>% #Mutate adds new var.&preserves existing: convert date format (to char string), add index row nr.
+      select(-year,-month,-day,-date)  %>%
+      select(Date,index,everything()) #move columns "Date" & "index" to front
+    
+      res2=data.frame(res2) #res2 contains ALL data of interpol, with row index
+      str(res2)
+      names(res2)= sub(pattern="stn", replacement="", x=names(res2))
+      
+  # B) Data subset for certain time period of interpol
+      ressub <- as_tibble(res) %>%
+        filter(date>="1980-01-01") %>% #select time period   #filter(date>="2015-09-04" & date<="2015-09-18")
+        mutate(Date=strftime(date,"%d%m%Y"),index=row_number(date)) %>%
+        select(-year,-month,-day,-date)  %>%
+        select(Date,index,everything())
+    
+      ressub=data.frame(ressub)
+      names(ressub)= sub(pattern="stn", replacement="", x=names(ressub))
+    
+ # 5.1)  Save as WASA-SED Time_series Input "rain_daily.dat"
+      
+# Chose result data
+      # rawres=res2   #whole interpol timer period
+      rawres=ressub   #time subset of interpol timer period
+  
+      # extract subbas data
+      subx <- as_tibble(rawres) %>%
+          select(-Date,-index) %>%
+          mutate_if(is.numeric, round, 1) #round data to 1 decimal place
+      
+      subx=data.frame(subx)
+  
+# !! Caution: Set all NA to 0 (no NA excepted in WASA input; only do if ok with your data)    
+      subx[is.na(subx)] <- 0
+      subx    
+      
+  # sort subbasin columns, ascending order: sub 1 ... sub n  
+      #rename subbasins to numbers only
+      names(subx) = sub(pattern="X", replacement="", x=names(subx)) #in case subbas-name starts with X
+      names(subx) = as.integer(names(subx)) #reformat names from "character" to "integer"
+      #sort subbas columns by header name
+      colorder=sort.int(as.integer(names(subx)), index.return = T)$ix
+      subx=subx[,colorder]
+  
+  # select Date & index column
+      datind=subset(rawres, select=c("Date","index")) 
+      
+  # # combine date & index columns and sorted subbas columns
+  #     newres=cbind(datind,subx)
+  #     ## check data head & structure
+  #     head(newres)
+  #     #str(newres)
+      
+# Save P data as WASA input
+     
+    setwd("E:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/Interpolation_P-stationdata/interpol_Till/_result4wasa")
+    address=getwd()
+    try(system(paste0("mkdir ",address)))
+    try(system(paste0("rm ",address,"/rain_daily.dat")))
+    fileConn <- file(paste0(address,"/rain_daily.dat"),"a")
+    cat("Daily total precipitation [mm] for each subasin, ordered according to Map-IDs","Date\t\tSubbasin-ID.", file = fileConn, sep = "\n")
+
+    dfObj1=datind
+    dfObj2=subx
+    
+    dfObj <- bind_cols(dfObj1,dfObj2)
+    
+    HEADER <- c("0","0",colnames(dfObj2))
+    cat(HEADER, file = fileConn, sep = "\t")
+    cat("\n",file = fileConn, sep = "")
+    
+    write.table(dfObj,file = fileConn, quote = FALSE, sep = "\t", row.names = FALSE, col.names=FALSE, fileEncoding = "UTF-8")
+    close(fileConn)  
+    
+    
+    
+    
+    
+    
