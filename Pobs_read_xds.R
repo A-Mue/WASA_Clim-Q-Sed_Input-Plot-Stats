@@ -1,9 +1,219 @@
-# Script for reading in precipitation observation data (Pobs)
-# and collect multiple txt-files into one, aggregated by date
+# Script for reading in precipitation observation data (IRMO), ERA data & seasonal forecasts (SEAS5)
+
+# collect multiple files into one, aggregated by date &
+# create input for interpolation (interpol) & for WASA
 
 # Copyright (C) 2019 Anne Müller, José Miguel Delgado 
 
-# Requirements:
+
+## 0) Load packages ####
+
+#list = c("dplyr", "lubridate","readr","sf","stringr", "tidyr","tidyverse")
+#install.packages(list)
+
+library(dplyr)
+library(lubridate)
+library(readr)
+library(sf)
+library(stringr)
+library(tidyr)
+#library(magrittr)
+
+
+# I) Read & reformat IRMO observation data ####
+
+# Data structure: Folder with different csv-files for each clim. variable (P, Tmin, Tmax)
+# Data file:  Heaser: Y,M,D,Stat1,Stat2...
+    # Continous data
+
+# I.0) Metadata for interpol ####
+# Meta data file for P, Tmin, Tmax
+metaf="/Users/annemueller/Desktop/Promotion/Daten/2_KarunDez/Climatedata/xds4interpol_KarunDez/xds/meta.txt"
+# Read meta data without lines beginning with # (=blank lines skip; stations not used by Gerd)
+meta<-read.table(metaf, header=TRUE,sep=",",dec=".",fileEncoding="UTF-8",blank.lines.skip=TRUE)
+meta
+
+# P metadata ####
+# get only lines with var=P
+Pmeta = filter(meta, var %in% "P") # filter var=P; for two criteria %in% c("bj fibroblast", "hesc"))
+
+# Add line number & reorder columns (dplyr package) 
+Pmeta <- as_tibble(Pmeta) %>%
+mutate(no=rownames(Pmeta)) %>%  # Mutate adds new variables and preserves existing
+select(no,lon,lat,alt,id) %>%  # select & sort columns
+rename(x=lon,y=lat,z=alt,name=id) # rename columns
+
+# Convert projection from LonLat to UTM ####
+library(sp)
+library(rgdal)
+
+#xy <- data.frame(x=Pmeta$x, y=Pmeta$y, name=Pmeta$name)
+xy <- data.frame(Pmeta) 
+coordinates(xy) <- c("x", "y")    # set coordinates x=lon and y=lat
+proj4string(xy) <- CRS("+proj=longlat +datum=WGS84")  # define original projection
+
+# transform to target projection UTM 39N
+xyproj <- spTransform(xy, CRS("+proj=utm +zone=39 +ellps=WGS84")) 
+str(xyproj)
+Pmetaproj=data.frame(xyproj) # save as dataframe
+#plot(Pmetaproj$x, Pmetaproj$y)
+Pmetaproj
+
+# Final structure for interpol
+Pmetainterpol <- as_tibble(Pmetaproj) %>%
+  select(no,x,y,z,name)  # select & sort columns
+
+Pmetainterpol=data.frame(Pmetainterpol)
+names(Pmetainterpol)= sub(pattern="no", replacement="#no", x=names(Pmetainterpol)) #rename no-column
+#str(Pmeta)
+Pmetainterpol
+
+# Save as rainfall24_stations.out ####
+  # adjust path to save file
+savef="/Users/annemueller/Desktop/Promotion/Daten/2_KarunDez/Climatedata/xds4interpol_KarunDez/interpol_Till/xds_irmo"
+file="/rainfall24_stations.out"
+# save file for interpol
+write.table(Pmetainterpol,paste0(savef,file), sep="\t",row.names=F,quote=F) 
+
+
+
+# I.1) P data for interpol ####
+
+#setwd("E:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/xds_Gerd/irmo/")
+setwd("/Users/annemueller/Desktop/Promotion/Daten/2_KarunDez/Climatedata/xds4interpol_KarunDez/xds/raw_irmo/")
+
+Pdatfile="P.csv"      # P obs data IRMO
+#Tminfile="TN.csv"     # T min obs data IRMO
+#Tmaxfile="TX.csv"     # T min obs data IRMO
+
+# Read P data
+Praw<-read.table(Pdatfile, header=TRUE,sep=",",dec=".",na.strings=c("","NA","*","-9999.00","-9999","NaN","-99.0"),fileEncoding="UTF-8",blank.lines.skip=TRUE)
+Praw
+str(Praw)
+
+# Delete columns with only NA
+Pdat=Praw[, colSums(is.na(Praw)) != nrow(Praw)] #if count of NAs in a column = number of rows, it must be entirely NA
+str(Pdat)
+
+# Note: interpol.exe can handle P stationnames of 7 digits (not tested for more digits so far) 
+## Rename columns / stations to last 5-digits
+## names(Pdat)= sub(pattern="IR", replacement="", x=names(Pdat)) #delete IR & only take station ID
+
+# Replace "NA" by "-999"
+Pirmint=Pdat #P IRMO for interpol
+Pirmint[is.na(Pirmint)] <- -999
+Pirmint
+
+# Save as "rainfall24_data.out" ####
+  # adjust path to save file
+savef="/Users/annemueller/Desktop/Promotion/Daten/2_KarunDez/Climatedata/xds4interpol_KarunDez/interpol_Till/xds_irmo"
+file="/rainfall24_data.out"
+  # save file for interpol
+write.table(Pirmint,paste0(savef,file), sep="\t",row.names=F,quote=F) 
+
+
+
+# II) Save Output of "interpol" script as WASA-SED Time_series Input "rain_daily.dat" ####
+
+# II.0) Reformat & select time period ####
+
+# Data need to be continous!
+
+# Read in result "rainfall24.out"
+resint="e:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/Interpolation_IRMO-stationdata/interpol_Till/_result4wasa/raw_rainfall24.out"
+res=read.table(resint, header=TRUE,sep="",dec=".",na.strings=c("","NA","*","-999.00","-9999.00","-9999","NaN"), fileEncoding="UTF-8",fill=T,skipNul=T,blank.lines.skip=TRUE)
+str(res)
+#rename columns
+names(res)= sub(pattern="_var01", replacement="", x=names(res))
+
+library(dplyr)
+
+# Create 1 date column
+res$date <- as.Date(paste(res$day,res$month,res$year, sep=".")  , format = "%d.%m.%Y" ) 
+
+# Option A) All data: reformat data - use res2 for whole time period in step 5.1) ####
+res2 <- as_tibble(res) %>%
+  mutate(Date=strftime(date,"%d%m%Y"),index=row_number(date)) %>% #Mutate adds new var.&preserves existing: convert date format (to char string), add index row nr.
+  select(-year,-month,-day,-date)  %>%
+  select(Date,index,everything()) #move columns "Date" & "index" to front
+
+res2=data.frame(res2) #res2 contains ALL data of interpol, with row index
+str(res2)
+names(res2)= sub(pattern="stn", replacement="", x=names(res2))
+
+# Option B) Data subset for certain time period of interpol ####
+ressub <- as_tibble(res) %>%
+  filter(date>="1980-01-01") %>% #select time period   #filter(date>="2015-09-04" & date<="2015-09-18")
+  mutate(Date=strftime(date,"%d%m%Y"),index=row_number(date)) %>%
+  select(-year,-month,-day,-date)  %>%
+  select(Date,index,everything())
+
+ressub=data.frame(ressub)
+names(ressub)= sub(pattern="stn", replacement="", x=names(ressub))
+
+# II.1)  Save as WASA-SED Time_series Input "rain_daily.dat" ####
+
+# Chose result data
+# rawres=res2   #whole interpol timer period
+rawres=ressub   #time subset of interpol timer period
+
+# extract subbas data
+subx <- as_tibble(rawres) %>%
+  select(-Date,-index) %>%
+  mutate_if(is.numeric, round, 1) #round data to 1 decimal place
+
+subx=data.frame(subx)
+
+# !! Caution: Set all NA to 0 (no NA excepted in WASA input; only do if ok with your data)    
+subx[is.na(subx)] <- 0
+subx    
+
+# sort subbasin columns, ascending order: sub 1 ... sub n  
+#rename subbasins to numbers only
+names(subx) = sub(pattern="X", replacement="", x=names(subx)) #in case subbas-name starts with X
+names(subx) = as.integer(names(subx)) #reformat names from "character" to "integer"
+#sort subbas columns by header name
+colorder=sort.int(as.integer(names(subx)), index.return = T)$ix
+subx=subx[,colorder]
+
+# select Date & index column
+datind=subset(rawres, select=c("Date","index")) 
+
+# # combine date & index columns and sorted subbas columns
+#     newres=cbind(datind,subx)
+#     ## check data head & structure
+#     head(newres)
+#     #str(newres)
+
+# Save P data as WASA input
+
+setwd("E:/Anne/_SaWaM_Data_/2_KarunDez/ClimMeteoHydro-data/Interpolation_IRMO-stationdata/interpol_Till/_result4wasa")
+address=getwd()
+try(system(paste0("mkdir ",address)))
+try(system(paste0("rm ",address,"/rain_daily.dat")))
+fileConn <- file(paste0(address,"/rain_daily.dat"),"a")
+cat("Daily total precipitation [mm] for each subasin, ordered according to Map-IDs","Date\t\tSubbasin-ID.", file = fileConn, sep = "\n")
+
+dfObj1=datind
+dfObj2=subx
+
+dfObj <- bind_cols(dfObj1,dfObj2)
+
+HEADER <- c("0","0",colnames(dfObj2))
+cat(HEADER, file = fileConn, sep = "\t")
+cat("\n",file = fileConn, sep = "")
+
+write.table(dfObj,file = fileConn, quote = FALSE, sep = "\t", row.names = FALSE, col.names=FALSE, fileEncoding = "UTF-8")
+close(fileConn)
+
+
+
+
+
+
+
+####____####
+
 # Data structure: Folder with different txt-files of P for each station, Date of different time lengths
 # Data file:  Header: Date (YYYY/MM/DD) P_mm (daily rainfall)
 #             Empty line at end of file!
@@ -23,11 +233,10 @@
   #library(magrittr)
 
 
-
 ## 0.2) Select obs-precipitation files ####
 
 #setwd("~/Desktop/ObsRainfall_DataCollection4BA/P_mm_Stationen_test2")
-setwd("E:/Anne/__UP__/_BA&Projekt-Betreuung/2019-5_BA_JulianeGeißler_KarunDezNS-Analyse/P_proc/P_mm_Stationen/")
+setwd("E:/Anne/__UP__/_BA&Projekt-Betreuung/2019-5_BA_JulianeGei?ler_KarunDezNS-Analyse/P_proc/P_mm_Stationen/")
 
 
 files <- list.files(pattern=".txt")
@@ -42,8 +251,6 @@ files
 
 
 ## 0.3) Export file names & create rename file for interpol-Script (rainfall interpolation to subbas centroids) ####
-# Note: interpol.exe can handle P stationnames of 7 digits (not tested for more digits so far) 
-
 fnames=files
 fnames= sub(pattern=".txt", replacement="", x=fnames) #save list without ".txt" in filenames
 #write.table(fnames,file="_filenames.dat",quote=T,col.names=F,row.names=F)
@@ -353,7 +560,7 @@ DF #show grouped Pobs data
       ressub=data.frame(ressub)
       names(ressub)= sub(pattern="stn", replacement="", x=names(ressub))
     
- # 5.1)  Save as WASA-SED Time_series Input "rain_daily.dat" ####
+ # 5.1)  Save as WASA-SED Time_series Input "rain_daily.dat"
       
 # Chose result data
       # rawres=res2   #whole interpol timer period

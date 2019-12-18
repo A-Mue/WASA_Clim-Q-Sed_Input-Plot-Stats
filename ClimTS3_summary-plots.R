@@ -8,7 +8,7 @@
 
 library(readr)
 
-working_dir="D:/Anne/_SaWaM_Data_/1_SaoFrancisco/1-1_UpperSFRB/WASA-SED/"
+working_dir="E:/Anne/_SaWaM_Data_/1_SaoFrancisco/1-1_UpperSFRB/WASA-SED/"
 thread_dir="1-1-4/"
 wasa_input_dir=paste(working_dir, thread_dir, "Input/Time_series/",sep="")
 
